@@ -58,15 +58,5 @@ The frontend dev server typically runs at `http://localhost:5173` and will proxy
 **Quick API checks**
 - Root: `curl http://127.0.0.1:8000/`
 - Health: `curl http://127.0.0.1:8000/health`
-
-**Notes & next steps**
-- Add real-time transport (WebSockets) and authentication.
-- Implement chat rooms, message persistence, and user presence.
-- Wire up frontend UI to backend WebSocket endpoints.
-
-If you want, I can:
-- run tests or start both servers locally and confirm endpoints; or
-- add a simple WebSocket echo endpoint in the backend and a tiny frontend to connect.
-
 ---
 Contributors: feel free to open issues or PRs describing features or fixes.
