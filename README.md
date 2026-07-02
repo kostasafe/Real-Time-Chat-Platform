@@ -59,4 +59,3 @@ The frontend dev server typically runs at `http://localhost:5173` and will proxy
 - Root: `curl http://127.0.0.1:8000/`
 - Health: `curl http://127.0.0.1:8000/health`
 ---
-Contributors: feel free to open issues or PRs describing features or fixes.
