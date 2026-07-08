@@ -18,8 +18,9 @@ A minimal real-time chat platform prototype with a FastAPI backend and a Vite + 
 - Backend: a FastAPI app exposing:
 	- `GET /` — returns a welcome message
 	- `GET /health` — returns a simple status object
-	These are implemented in [backend/app/main.py](backend/app/main.py) and [backend/app/routers/health.py](backend/app/routers/health.py).
-- Frontend: Vite + React scaffold with `src/main.tsx` and `index.html`. The dev server runs on port 5173 by default.
+	- `POST /chat/message` — accepts a chat payload and echoes it back
+	These are implemented in [backend/app/main.py](backend/app/main.py), [backend/app/routers/health.py](backend/app/routers/health.py), and [backend/app/routers/chat.py](backend/app/routers/chat.py).
+- Frontend: Vite + React scaffold with `src/main.tsx` and `index.html` plus a basic chat input in `src/App.tsx` that sends messages to the backend.
 
 **Local development — Backend (Windows PowerShell)**
 1. Create and activate a virtual environment (optional but recommended):
