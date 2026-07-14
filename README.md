@@ -1,6 +1,6 @@
 # Real-Time-Chat-Platform
 
-A minimal real-time chat platform prototype with a FastAPI backend and a Vite + React (TypeScript) frontend. This README summarizes the project structure, how to run the services locally, and the important endpoints available today.
+A minimal real-time chat platform prototype with a FastAPI backend and a Vite + React (TypeScript) frontend.
 
 **Status:** Work in progress — basic backend health routes and frontend shell are present.
 
