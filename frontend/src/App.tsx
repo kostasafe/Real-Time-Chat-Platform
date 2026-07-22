@@ -1,86 +1,136 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-type ChatResponse = {
-  status: string;
-  received: {
-    sender: string;
-    text: string;
-  };
-  info: string;
+type ChatMessage = {
+  id: number;
+  sender: string;
+  text: string;
+};
+
+type IncomingMessage = {
+  sender: string;
+  text: string;
 };
 
 function App() {
-  const [message, setMessage] = useState('Loading...');
+  const [room, setRoom] = useState('general');
   const [input, setInput] = useState('');
-  const [sendStatus, setSendStatus] = useState('');
-  const [response, setResponse] = useState<ChatResponse | null>(null);
+  const [status, setStatus] = useState('Connecting...');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    fetch('http://localhost:8000/health')
-      .then((response) => response.json())
-      .then((data) => setMessage(data.message))
-      .catch(() => setMessage('Backend unavailable'));
-  }, []);
+    const socket = new WebSocket(`ws://localhost:8000/chat/ws/${room}`);
+    socketRef.current = socket;
 
-  const sendMessage = async () => {
-    if (!input.trim()) {
-      setSendStatus('Please enter a message.');
+    socket.onopen = () => {
+      setStatus(`Connected to room: ${room}`);
+    };
+
+    socket.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data) as IncomingMessage;
+        if (payload.text) {
+          setMessages((current) => [
+            ...current,
+            {
+              id: Date.now() + Math.random(),
+              sender: payload.sender || 'system',
+              text: payload.text,
+            },
+          ]);
+        }
+      } catch {
+        setMessages((current) => [
+          ...current,
+          {
+            id: Date.now() + Math.random(),
+            sender: 'system',
+            text: event.data,
+          },
+        ]);
+      }
+    };
+
+    socket.onerror = () => {
+      setStatus('Connection error');
+    };
+
+    socket.onclose = () => {
+      setStatus(`Disconnected from room: ${room}`);
+    };
+
+    return () => {
+      socket.close();
+    };
+  }, [room]);
+
+  const sendMessage = () => {
+    const trimmed = input.trim();
+    if (!trimmed) {
+      setStatus('Type a message before sending.');
       return;
     }
 
-    setSendStatus('Sending...');
-
-    try {
-      const response = await fetch('http://localhost:8000/chat/message', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ sender: 'web', text: input }),
-      });
-      const data = (await response.json()) as ChatResponse;
-      setResponse(data);
-      setSendStatus('Message sent successfully');
+    const socket = socketRef.current;
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ sender: 'me', text: trimmed }));
       setInput('');
-    } catch {
-      setSendStatus('Failed to send message');
+      setStatus(`Sent to room: ${room}`);
+    } else {
+      setStatus('Socket is not connected yet.');
     }
   };
 
   return (
-    <main style={{ fontFamily: 'sans-serif', padding: '2rem' }}>
+    <main style={{ fontFamily: 'sans-serif', padding: '2rem', maxWidth: '720px', margin: '0 auto' }}>
       <h1>ChatHub</h1>
       <p>Welcome to your real-time chat platform foundation.</p>
-      <p>Backend status: {message}</p>
 
       <div style={{ marginTop: '1.5rem' }}>
-        <label htmlFor="chat-input" style={{ display: 'block', marginBottom: '0.5rem' }}>
-          Send a test chat message:
+        <label htmlFor="room-input" style={{ display: 'block', marginBottom: '0.5rem' }}>
+          Room name
         </label>
-        <div>
+        <input
+          id="room-input"
+          value={room}
+          onChange={(event) => setRoom(event.target.value || 'general')}
+          placeholder="Enter a room"
+          style={{ width: '100%', padding: '0.6rem', marginBottom: '1rem' }}
+        />
+
+        <div style={{ marginBottom: '0.75rem' }}>
+          <strong>Status:</strong> {status}
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
           <input
-            id="chat-input"
             value={input}
             onChange={(event) => setInput(event.target.value)}
             placeholder="Type a message"
-            style={{ width: '60%', padding: '0.5rem' }}
+            style={{ flex: 1, padding: '0.6rem' }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+              }
+            }}
           />
-          <button
-            type="button"
-            onClick={sendMessage}
-            style={{ marginLeft: '0.75rem', padding: '0.55rem 1rem' }}
-          >
+          <button type="button" onClick={sendMessage} style={{ padding: '0.6rem 1rem' }}>
             Send
           </button>
         </div>
-        <p style={{ marginTop: '0.75rem' }}>{sendStatus}</p>
-        {response ? (
-          <div style={{ marginTop: '1rem', border: '1px solid #ccc', padding: '0.75rem', borderRadius: '6px' }}>
-            <strong>Response:</strong>
-            <p>{response.info}</p>
-            <pre style={{ margin: 0 }}>{JSON.stringify(response.received, null, 2)}</pre>
-          </div>
-        ) : null}
+
+        <div style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '1rem', minHeight: '220px' }}>
+          {messages.length === 0 ? (
+            <p style={{ color: '#666' }}>No messages yet. Start the conversation.</p>
+          ) : (
+            messages.map((message) => (
+              <div key={message.id} style={{ marginBottom: '0.75rem' }}>
+                <strong>{message.sender}:</strong> {message.text}
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </main>
   );
