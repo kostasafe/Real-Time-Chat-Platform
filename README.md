@@ -23,7 +23,7 @@ A minimal real-time chat platform prototype with a FastAPI backend and a Vite + 
 	- `POST /chat/message` — accepts a chat payload and echoes it back
 	- `WS /chat/ws/{room}` — accepts WebSocket connections and broadcasts messages to clients in the same room
 	These are implemented in [backend/app/main.py](backend/app/main.py), [backend/app/routers/health.py](backend/app/routers/health.py), and [backend/app/routers/chat.py](backend/app/routers/chat.py).
-- Frontend: Vite + React app with a room-based chat experience in `src/App.tsx` that connects to the backend over WebSockets and displays incoming messages live.
+- Frontend: Vite + React app with a room-based chat experience in `src/App.tsx` that connects to the backend over WebSockets and displays incoming messages live
 
 **Local development — Backend (Windows PowerShell)**
 1. Create and activate a virtual environment (optional but recommended):
