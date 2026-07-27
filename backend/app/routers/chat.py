@@ -1,6 +1,7 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
 from pydantic import BaseModel
 from typing import Dict, Set
+from app.security import verify_token
 
 
 class ChatMessage(BaseModel):
@@ -67,12 +68,26 @@ manager = ConnectionManager()
 
 
 @router.websocket("/ws/{room}")
-async def websocket_endpoint(websocket: WebSocket, room: str) -> None:
+async def websocket_endpoint(websocket: WebSocket, room: str, token: str = Query(...)) -> None:
+    # Verify token before accepting connection
+    username = verify_token(token)
+    if not username:
+        await websocket.close(code=4001, reason="Unauthorized")
+        return
+
     await manager.connect(websocket, room)
     try:
         while True:
             data = await websocket.receive_text()
-            # broadcast received text to all clients in the room
-            await manager.broadcast(data, room)
+            # broadcast received text to all clients in the room with the sender's username
+            import json
+            try:
+                payload = json.loads(data)
+                payload["sender"] = username  # Override sender with authenticated username
+                message = json.dumps(payload)
+            except:
+                # If not JSON, wrap it
+                message = json.dumps({"sender": username, "text": data})
+            await manager.broadcast(message, room)
     except WebSocketDisconnect:
         manager.disconnect(websocket, room)
