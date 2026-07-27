@@ -13,3 +13,4 @@ frontend/.vite/
 frontend/**/*.tsbuildinfo
 frontend/vite.config.js
 frontend/vite.config.d.ts
+backend/app/__pycache__/main.cpython-313.pyc
