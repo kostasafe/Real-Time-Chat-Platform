@@ -1,10 +1,15 @@
 ﻿# Python
 .venv/
 venv/
+.venv-1/
 __pycache__/
 *.py[cod]
 *.db
 backend/app/__pycache__/
+
+# Local env files
+.env
+.env.*
 
 # Node / frontend
 frontend/node_modules/
