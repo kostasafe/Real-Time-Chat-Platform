@@ -2,13 +2,15 @@
 
 A minimal real-time chat platform prototype with a FastAPI backend and a Vite + React (TypeScript) frontend.
 
-**Status:** Work in progress — the project now includes authentication, room-based WebSocket chat, and a local SQLite-backed user store.
+**Status:** Ready for junior developer use with auth, WebSocket chat, environment config, tests, and CI.
 
 **Repository layout**
 - **backend/**: FastAPI backend application
 	- `requirements.txt` – Python dependencies
+	- `pytest.ini` – test configuration
+	- `.env.example` – sample environment variables
 	- `app/` – FastAPI app package (entry: `app.main`)
-		- `core/config.py` – small settings object
+		- `core/config.py` – application settings object
 		- `database.py` – SQLite database setup and session creation
 		- `models.py` – SQLAlchemy user model
 		- `schemas.py` – Pydantic request/response schemas
@@ -19,7 +21,11 @@ A minimal real-time chat platform prototype with a FastAPI backend and a Vite + 
 - **frontend/**: Vite + React (TypeScript) frontend
 	- `index.html`, `src/` – React app entrypoints
 	- `package.json` – frontend scripts and deps
+	- `vite.config.ts` – Vite and test configuration
 	- `src/App.tsx` – login/signup flow, token persistence, and room-based chat UI using WebSockets
+	- `src/App.test.tsx` – React unit test for the app shell
+- **.github/workflows/ci.yml**: GitHub Actions CI pipeline
+- **LICENSE**: MIT license
 
 **What works today**
 - Backend: a FastAPI app exposing:
@@ -44,17 +50,24 @@ python -m venv .venv
 2. Install dependencies:
 
 ```
+pip install --upgrade pip
 pip install -r backend/requirements.txt
 ```
 
-3. Start the API server (development, auto-reload):
+3. Copy the sample environment file:
+
+```
+copy backend\.env.example backend\.env
+```
+
+4. Start the API server (development, auto-reload):
 
 ```
 cd backend
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-By default the backend sets CORS to allow `http://localhost:5173` so the frontend dev server can call the API.
+The backend uses CORS to allow `http://localhost:5173` so the frontend dev server can call the API.
 
 **Local development — Frontend**
 1. Install dependencies and start the Vite dev server:
@@ -65,7 +78,23 @@ npm install
 npm run dev
 ```
 
-The frontend dev server typically runs at `http://localhost:5173` and will proxy calls to the backend when you call the backend endpoints from browser code.
+The frontend dev server typically runs at `http://localhost:5173`.
+
+**Running tests**
+
+- Backend:
+
+```
+cd backend
+pytest
+```
+
+- Frontend:
+
+```
+cd frontend
+npm test
+```
 
 **Quick API checks**
 - Root: `curl http://127.0.0.1:8000/`
