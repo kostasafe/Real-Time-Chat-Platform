@@ -2,7 +2,7 @@
 
 A minimal real-time chat platform prototype with a FastAPI backend and a Vite + React (TypeScript) frontend.
 
-**Status:** Ready for junior developer use with auth, WebSocket chat, environment config, tests, and CI.
+* **Status:** Ready for junior developer use with auth, WebSocket chat, environment config, tests, and CI.
 
 **Repository layout**
 - **backend/**: FastAPI backend application
