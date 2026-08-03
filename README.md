@@ -3,6 +3,7 @@
 A minimal real-time chat platform prototype with a FastAPI backend and a Vite + React (TypeScript) frontend.
 
 * **Status:** Ready for junior developer use with auth, WebSocket chat, environment config, tests, and CI.
+* **CI:** GitHub Actions CI is configured in `.github/workflows/ci.yml` to run backend tests and frontend build/test on push and pull request.
 
 **Repository layout**
 - **backend/**: FastAPI backend application
