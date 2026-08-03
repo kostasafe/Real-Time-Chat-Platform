@@ -1,5 +1,7 @@
 # Real-Time-Chat-Platform
 
+[![CI](https://github.com/kostasafe/Real-Time-Chat-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/kostasafe/Real-Time-Chat-Platform/actions/workflows/ci.yml)
+
 A minimal real-time chat platform prototype with a FastAPI backend and a Vite + React (TypeScript) frontend.
 
 * **Status:** Ready for junior developer use with auth, WebSocket chat, environment config, tests, and CI.
