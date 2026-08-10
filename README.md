@@ -104,5 +104,5 @@ npm test
 - Health: `curl http://127.0.0.1:8000/health`
 - Signup: `curl -X POST http://127.0.0.1:8000/auth/signup -H "Content-Type: application/json" -d "{\"username\":\"demo\",\"email\":\"demo@example.com\",\"password\":\"secret123\"}"`
 - Login: `curl -X POST http://127.0.0.1:8000/auth/login -H "Content-Type: application/json" -d "{\"username\":\"demo\",\"password\":\"secret123\"}"`
-- WebSocket: open a connection to `ws://127.0.0.1:8000/chat/ws/general` to test live chat behavior.
+- WebSocket: open a connection to `ws://127.0.0.1:8000/chat/ws/general?token=<access_token>` to test live chat behavior.
 ---
