@@ -11,7 +11,6 @@ A minimal real-time chat platform prototype with a FastAPI backend and a Vite + 
 - **backend/**: FastAPI backend application
 	- `requirements.txt` – Python dependencies
 	- `pytest.ini` – test configuration
-	- `.env.example` – sample environment variables
 	- `app/` – FastAPI app package (entry: `app.main`)
 		- `core/config.py` – application settings object
 		- `database.py` – SQLite database setup and session creation
@@ -40,7 +39,7 @@ A minimal real-time chat platform prototype with a FastAPI backend and a Vite + 
 	- `WS /chat/ws/{room}` — accepts WebSocket connections and broadcasts messages to clients in the same room
 	These are implemented in [backend/app/main.py](backend/app/main.py), [backend/app/routers/health.py](backend/app/routers/health.py), [backend/app/routers/auth.py](backend/app/routers/auth.py), and [backend/app/routers/chat.py](backend/app/routers/chat.py).
 - Frontend: a Vite + React app with a login/signup experience in `src/App.tsx` that stores the access token locally, connects to the backend over WebSockets, and displays incoming messages live.
-- Data layer: the backend uses SQLite via SQLAlchemy, and a local `chat.db` file is created automatically when the app starts.
+- Data layer: the backend uses SQLite via SQLAlchemy, and a local `chat.db` file is created automatically when the app starts. Set `DATABASE_URL` to use a different database URL. Set `SECRET_KEY` and optionally `ACCESS_TOKEN_EXPIRE_MINUTES` to configure JWT authentication.
 
 **Local development — Backend (Windows PowerShell)**
 1. Create and activate a virtual environment (optional but recommended):
@@ -57,13 +56,7 @@ pip install --upgrade pip
 pip install -r backend/requirements.txt
 ```
 
-3. Copy the sample environment file:
-
-```
-copy backend\.env.example backend\.env
-```
-
-4. Start the API server (development, auto-reload):
+3. Start the API server (development, auto-reload):
 
 ```
 cd backend
