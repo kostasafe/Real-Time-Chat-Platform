@@ -92,3 +92,30 @@ def test_websocket_rejects_invalid_payloads():
         websocket.send_json({"foo": "bar"})
         with pytest.raises(Exception):
             websocket.receive_text()
+
+
+def test_websocket_accepts_cookie_auth():
+    client = TestClient(app)
+    signup_payload = {
+        "username": "cookieuser",
+        "email": "cookieuser@example.com",
+        "password": "secretpass",
+    }
+    client.post("/auth/signup", json=signup_payload)
+    login_response = client.post(
+        "/auth/login",
+        json={"username": "cookieuser", "password": "secretpass"},
+    )
+    assert login_response.status_code == 200
+    token = login_response.json()["access_token"]
+
+    with client.websocket_connect(
+        "/chat/ws/general",
+        headers={"Cookie": f"access_token={token}"},
+    ) as websocket:
+        websocket.send_text('{"text":"hello from cookie auth"}')
+        message = websocket.receive_text()
+
+    data = __import__("json").loads(message)
+    assert data["sender"] == "cookieuser"
+    assert data["text"] == "hello from cookie auth"

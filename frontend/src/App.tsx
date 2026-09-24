@@ -17,7 +17,6 @@ const WS_URL = 'ws://localhost:8000';
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
-  const [token, setToken] = useState('');
   const [room, setRoom] = useState('general');
   const [input, setInput] = useState('');
   const [status, setStatus] = useState('Not connected');
@@ -31,22 +30,20 @@ function App() {
   const [authPassword, setAuthPassword] = useState('');
   const [authError, setAuthError] = useState('');
 
-  // Load token from localStorage on mount
+  // Restore username state on mount without keeping JWT in localStorage.
   useEffect(() => {
-    const savedToken = localStorage.getItem('access_token');
     const savedUsername = localStorage.getItem('username');
-    if (savedToken && savedUsername) {
-      setToken(savedToken);
+    if (savedUsername) {
       setUsername(savedUsername);
       setIsLoggedIn(true);
     }
   }, []);
 
-  // Connect to WebSocket when logged in and room changes
+  // Connect to WebSocket when logged in and room changes.
   useEffect(() => {
-    if (!isLoggedIn || !token) return;
+    if (!isLoggedIn) return;
 
-    const wsUrl = `${WS_URL}/chat/ws/${room}?token=${token}`;
+    const wsUrl = `${WS_URL}/chat/ws/${room}`;
     const socket = new WebSocket(wsUrl);
     socketRef.current = socket;
 
@@ -91,7 +88,7 @@ function App() {
     return () => {
       socket.close();
     };
-  }, [isLoggedIn, token, room]);
+  }, [isLoggedIn, room]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,6 +97,7 @@ function App() {
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           username: authUsername,
@@ -114,9 +112,7 @@ function App() {
       }
 
       const data = await response.json();
-      localStorage.setItem('access_token', data.access_token);
       localStorage.setItem('username', authUsername);
-      setToken(data.access_token);
       setUsername(authUsername);
       setIsLoggedIn(true);
       setAuthPassword('');
@@ -132,6 +128,7 @@ function App() {
     try {
       const response = await fetch(`${API_URL}/auth/signup`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           username: authUsername,
@@ -149,6 +146,7 @@ function App() {
       // Auto-login after signup
       const loginResponse = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           username: authUsername,
@@ -163,9 +161,7 @@ function App() {
       }
 
       const loginData = await loginResponse.json();
-      localStorage.setItem('access_token', loginData.access_token);
       localStorage.setItem('username', authUsername);
-      setToken(loginData.access_token);
       setUsername(authUsername);
       setIsLoggedIn(true);
       setAuthPassword('');
@@ -174,10 +170,17 @@ function App() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('access_token');
+  const handleLogout = async () => {
+    try {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch {
+      // Ignore logout errors and clear local UI state anyway.
+    }
+
     localStorage.removeItem('username');
-    setToken('');
     setUsername('');
     setIsLoggedIn(false);
     setMessages([]);

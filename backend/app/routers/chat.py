@@ -1,6 +1,6 @@
 import json
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
+from fastapi import APIRouter, Cookie, WebSocket, WebSocketDisconnect, Query
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from typing import Dict, Set
 from app.security import verify_token
@@ -75,9 +75,15 @@ manager = ConnectionManager()
 
 
 @router.websocket("/ws/{room}")
-async def websocket_endpoint(websocket: WebSocket, room: str, token: str = Query(...)) -> None:
-    # Verify token before accepting connection
-    username = verify_token(token)
+async def websocket_endpoint(
+    websocket: WebSocket,
+    room: str,
+    token: str | None = Query(default=None),
+    access_token: str | None = Cookie(default=None),
+) -> None:
+    # Verify token before accepting connection.
+    jwt_token = token or access_token
+    username = verify_token(jwt_token) if jwt_token else None
     if not username:
         await websocket.close(code=4001, reason="Unauthorized")
         return
