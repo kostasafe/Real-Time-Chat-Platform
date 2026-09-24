@@ -1,14 +1,19 @@
 import json
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from typing import Dict, Set
 from app.security import verify_token
 
 
+MAX_MESSAGE_LENGTH = 500
+
+
 class ChatMessage(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     sender: str
-    text: str
+    text: str = Field(..., min_length=1, max_length=MAX_MESSAGE_LENGTH)
 
 
 class ChatResponse(BaseModel):
@@ -81,15 +86,24 @@ async def websocket_endpoint(websocket: WebSocket, room: str, token: str = Query
     try:
         while True:
             data = await websocket.receive_text()
-            # broadcast received text to all clients in the room with the sender's username
-            import json
             try:
-                payload = json.loads(data)
-                payload["sender"] = username  # Override sender with authenticated username
-                message = json.dumps(payload)
-            except:
-                # If not JSON, wrap it
-                message = json.dumps({"sender": username, "text": data})
+                try:
+                    payload = json.loads(data)
+                except json.JSONDecodeError:
+                    payload = {"text": data}
+
+                if isinstance(payload, str):
+                    payload = {"text": payload}
+                if not isinstance(payload, dict):
+                    raise ValueError("Message payload must be a JSON object or plain text")
+
+                payload["sender"] = username
+                validated = ChatMessage.model_validate(payload)
+                message = json.dumps({"sender": validated.sender, "text": validated.text})
+            except (TypeError, ValueError, ValidationError):
+                await websocket.close(code=1008, reason="Invalid message payload")
+                return
+
             await manager.broadcast(message, room)
     except WebSocketDisconnect:
         manager.disconnect(websocket, room)

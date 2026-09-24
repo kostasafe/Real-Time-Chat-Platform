@@ -71,3 +71,24 @@ def test_websocket_token_auth_and_broadcast():
     data = __import__("json").loads(message)
     assert data["sender"] == "wsuser"
     assert data["text"] == "hello from test"
+
+
+def test_websocket_rejects_invalid_payloads():
+    client = TestClient(app)
+    signup_payload = {
+        "username": "badwsuser",
+        "email": "badwsuser@example.com",
+        "password": "secretpass",
+    }
+    client.post("/auth/signup", json=signup_payload)
+    login_response = client.post(
+        "/auth/login",
+        json={"username": "badwsuser", "password": "secretpass"},
+    )
+    assert login_response.status_code == 200
+    token = login_response.json()["access_token"]
+
+    with client.websocket_connect(f"/chat/ws/general?token={token}") as websocket:
+        websocket.send_json({"foo": "bar"})
+        with pytest.raises(Exception):
+            websocket.receive_text()
