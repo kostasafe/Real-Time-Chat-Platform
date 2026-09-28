@@ -111,7 +111,6 @@ function App() {
         return;
       }
 
-      const data = await response.json();
       localStorage.setItem('username', authUsername);
       setUsername(authUsername);
       setIsLoggedIn(true);
@@ -160,7 +159,6 @@ function App() {
         return;
       }
 
-      const loginData = await loginResponse.json();
       localStorage.setItem('username', authUsername);
       setUsername(authUsername);
       setIsLoggedIn(true);
