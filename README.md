@@ -1,5 +1,7 @@
 # Real-Time Chat Platform
 
+[![CI](https://github.com/kostasafe/Real-Time-Chat-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/kostasafe/Real-Time-Chat-Platform/actions/workflows/ci.yml)
+
 A small real-time chat application with a FastAPI backend and a Vite + React frontend.
 
 ## Overview
