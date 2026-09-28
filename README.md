@@ -1,101 +1,171 @@
-# Real Time Chat Platform
+# Real-Time Chat Platform
 
-[![CI](https://github.com/kostasafe/Real-Time-Chat-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/kostasafe/Real-Time-Chat-Platform/actions/workflows/ci.yml)
+A small real-time chat application with a FastAPI backend and a Vite + React frontend.
 
-A minimal real-time chat platform prototype with a FastAPI backend and a Vite + React (TypeScript) frontend.
+## Overview
 
-* **Status:** Ready for junior developer use with auth, WebSocket chat, environment config, tests, and CI.
-* **CI:** GitHub Actions CI is configured in `.github/workflows/ci.yml` to run backend tests and frontend build/test on push and pull request.
+This project currently includes:
 
-**Repository layout**
-- **backend/**: FastAPI backend application
-	- `requirements.txt` – Python dependencies
-	- `pytest.ini` – test configuration
-	- `app/` – FastAPI app package (entry: `app.main`)
-		- `core/config.py` – application settings object
-		- `database.py` – SQLite database setup and session creation
-		- `models.py` – SQLAlchemy user model
-		- `schemas.py` – Pydantic request/response schemas
-		- `security.py` – password hashing and JWT token helpers
-		- `routers/health.py` – health check router
-		- `routers/auth.py` – signup/login endpoints with JWT authentication
-		- `routers/chat.py` – chat router with HTTP echo and WebSocket support
-- **frontend/**: Vite + React (TypeScript) frontend
-	- `index.html`, `src/` – React app entrypoints
-	- `package.json` – frontend scripts and deps
-	- `vite.config.ts` – Vite and test configuration
-	- `src/App.tsx` – login/signup flow, token persistence, and room-based chat UI using WebSockets
-	- `src/App.test.tsx` – React unit test for the app shell
-- **.github/workflows/ci.yml**: GitHub Actions CI pipeline
-- **LICENSE**: MIT license
+- JWT-based user signup/login
+- SQLite persistence with SQLAlchemy
+- WebSocket room chat with broadcast messaging
+- A simple React interface for auth and live messaging
+- Backend and frontend test setup
 
-**What works today**
-- Backend: a FastAPI app exposing:
-	- `GET /` — returns a welcome message
-	- `GET /health` — returns a simple status object
-	- `POST /auth/signup` — creates a new user account
-	- `POST /auth/login` — authenticates a user and returns a JWT access token
-	- `POST /chat/message` — accepts a chat payload and echoes it back
-	- `WS /chat/ws/{room}` — accepts WebSocket connections and broadcasts messages to clients in the same room
-	These are implemented in [backend/app/main.py](backend/app/main.py), [backend/app/routers/health.py](backend/app/routers/health.py), [backend/app/routers/auth.py](backend/app/routers/auth.py), and [backend/app/routers/chat.py](backend/app/routers/chat.py).
-- Frontend: a Vite + React app with a login/signup experience in `src/App.tsx` that stores the access token locally, connects to the backend over WebSockets, and displays incoming messages live.
-- Data layer: the backend uses SQLite via SQLAlchemy, and a local `chat.db` file is created automatically when the app starts. Set `DATABASE_URL` to use a different database URL. Set `SECRET_KEY` and optionally `ACCESS_TOKEN_EXPIRE_MINUTES` to configure JWT authentication.
+## Tech stack
 
-**Local development — Backend (Windows PowerShell)**
-1. Create and activate a virtual environment (optional but recommended):
+- Backend: FastAPI, SQLAlchemy, Pydantic, JWT
+- Database: SQLite
+- Frontend: React + TypeScript + Vite
+- Testing: pytest for backend, Vitest for frontend
 
-```
+## Project structure
+
+- `backend/` — FastAPI app
+  - `requirements.txt` — Python dependencies
+  - `pytest.ini` — pytest configuration
+  - `app/` — application package
+    - `main.py` — app entry point and router registration
+    - `database.py` — SQLite engine and session setup
+    - `models.py` — SQLAlchemy models
+    - `schemas.py` — request/response validation models
+    - `security.py` — password hashing and JWT helpers
+    - `core/config.py` — settings object
+    - `routers/health.py` — health route
+    - `routers/auth.py` — signup, login, logout endpoints
+    - `routers/chat.py` — message API and WebSocket endpoint
+- `frontend/` — Vite + React app
+  - `package.json` — frontend scripts and dependencies
+  - `src/App.tsx` — auth flow and chat UI
+  - `src/App.test.tsx` — app-level frontend test
+- `.github/workflows/ci.yml` — CI pipeline
+- `LICENSE` — MIT license
+
+## Current behavior
+
+### Backend API
+
+The backend exposes the following routes:
+
+- `GET /` → returns a welcome message
+- `GET /health` → returns a simple health payload
+- `POST /auth/signup` → creates a new user
+- `POST /auth/login` → verifies credentials and returns a JWT access token
+- `POST /auth/logout` → clears the auth cookie
+- `POST /chat/message` → echoes a validated chat payload
+- `WS /chat/ws/{room}` → accepts a WebSocket and broadcasts messages to users in the same room
+
+The app validates room messages with a bounded-message schema and rejects invalid payloads.
+
+### Frontend
+
+The React app provides:
+
+- Login / signup screen
+- Username persistence in localStorage
+- WebSocket room connection for live chat
+- Message list for the current room
+- Logout flow
+
+The frontend connects to the backend at `http://localhost:8000` and uses `ws://localhost:8000` for the socket connection.
+
+## Local development
+
+### 1) Backend (Windows PowerShell)
+
+Create and activate a virtual environment if needed:
+
+```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 ```
 
-2. Install dependencies:
+Install dependencies:
 
-```
+```powershell
 pip install --upgrade pip
 pip install -r backend/requirements.txt
 ```
 
-3. Start the API server (development, auto-reload):
+Start the API server:
 
-```
+```powershell
 cd backend
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-The backend uses CORS to allow `http://localhost:5173` so the frontend dev server can call the API.
+The backend enables CORS for `http://localhost:5173`, which is the default Vite frontend origin.
 
-**Local development — Frontend**
-1. Install dependencies and start the Vite dev server:
+### 2) Frontend
 
-```
+```powershell
 cd frontend
 npm install
 npm run dev
 ```
 
-The frontend dev server typically runs at `http://localhost:5173`.
+The frontend dev server usually runs at:
 
-**Running tests**
-
-- Backend:
-
+```text
+http://localhost:5173
 ```
+
+## Database configuration
+
+The backend uses SQLite via SQLAlchemy. By default, it creates a local database file named `chat.db` in the backend directory when the app starts.
+
+You can override this with the `DATABASE_URL` environment variable:
+
+```powershell
+$env:DATABASE_URL = "sqlite:///./chat.db"
+```
+
+## Authentication notes
+
+The backend issues an access token and also sets it as a cookie during login. The frontend uses the cookie-based flow for the browser experience.
+
+For direct socket testing, the WebSocket endpoint also accepts a token in the query string:
+
+```text
+ws://127.0.0.1:8000/chat/ws/general?token=<access_token>
+```
+
+## Running tests
+
+### Backend
+
+```powershell
 cd backend
 pytest
 ```
 
-- Frontend:
+### Frontend
 
-```
+```powershell
 cd frontend
 npm test
 ```
 
-**Quick API checks**
-- Root: `curl http://127.0.0.1:8000/`
-- Health: `curl http://127.0.0.1:8000/health`
-- Signup: `curl -X POST http://127.0.0.1:8000/auth/signup -H "Content-Type: application/json" -d "{\"username\":\"demo\",\"email\":\"demo@example.com\",\"password\":\"secret123\"}"`
-- Login: `curl -X POST http://127.0.0.1:8000/auth/login -H "Content-Type: application/json" -d "{\"username\":\"demo\",\"password\":\"secret123\"}"`
-- WebSocket: open a connection to `ws://127.0.0.1:8000/chat/ws/general?token=<access_token>` to test live chat behavior.
----
+## Quick API checks
+
+```powershell
+curl http://127.0.0.1:8000/
+curl http://127.0.0.1:8000/health
+```
+
+Signup example:
+
+```powershell
+curl -X POST http://127.0.0.1:8000/auth/signup -H "Content-Type: application/json" -d "{\"username\":\"demo\",\"email\":\"demo@example.com\",\"password\":\"secret123\"}"
+```
+
+Login example:
+
+```powershell
+curl -X POST http://127.0.0.1:8000/auth/login -H "Content-Type: application/json" -d "{\"username\":\"demo\",\"password\":\"secret123\"}"
+```
+
+## Notes
+
+This project is a lightweight prototype and is intended as a learning / junior-development project rather than as a production-ready chat system.
+
